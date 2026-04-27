@@ -1,4 +1,5 @@
 import { Button, StyleSheet } from 'react-native';
+import { router } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -12,7 +13,7 @@ export default function HomeScreen() {
       <ThemedText style={styles.tagline}>
         Every rider and driver, a verified woman.
       </ThemedText>
-      <Button title="Start" onPress={() => console.log('Start pressed')} />
+      <Button title="Start" onPress={() => router.push('/sign-up')} />
     </ThemedView>
   );
 }
