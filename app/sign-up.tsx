@@ -1,5 +1,6 @@
 import { Button, StyleSheet, TextInput } from 'react-native';
 import { useState } from 'react';
+import { router } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -30,7 +31,7 @@ export default function SignUpScreen() {
 
       <Button
         title="Send OTP"
-        onPress={() => console.log('Send OTP pressed for:', phone)}
+        onPress={() => router.push({ pathname: '/otp', params: { phone } })}
       />
     </ThemedView>
   );
