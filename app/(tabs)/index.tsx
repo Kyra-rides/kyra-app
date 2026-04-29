@@ -21,6 +21,7 @@ import {
   useSaved,
   type SavedSlot,
 } from '@/services/places';
+import { isOnboarded } from '@/services/demo-state';
 import { setDrop, setPickup, setRoute } from '@/services/trip';
 
 // Bengaluru centroid — used as a final fallback view while GPS is loading
@@ -36,6 +37,15 @@ export default function RideHomeScreen() {
   const location = useCurrentLocation();
   const mapRef = useRef<MapView | null>(null);
   const followedRef = useRef(false); // first-time auto-pan guard
+
+  // Demo: every fresh app launch lands on /sign-up. The flag is in-memory, so
+  // a reload (or Expo Go restart) resets it. Once onboarding completes the
+  // rider returns here normally.
+  useEffect(() => {
+    if (!isOnboarded()) {
+      router.replace('/sign-up');
+    }
+  }, []);
 
   useEffect(() => {
     void hydratePlaces();

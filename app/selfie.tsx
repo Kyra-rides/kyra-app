@@ -7,6 +7,7 @@ import { BrandButton } from '@/components/brand-button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Brand } from '@/constants/theme';
+import { markOnboarded } from '@/services/demo-state';
 
 export default function SelfieScreen() {
   // Permission state. `null` = still loading; otherwise granted / denied.
@@ -59,9 +60,15 @@ export default function SelfieScreen() {
         "You're verified ✓",
         'Welcome to Kyra. Every rider and driver here is a verified woman.',
         [
-          // dismissAll pops the entire onboarding stack, returning the user to
-          // the welcome screen with verification "complete."
-          { text: 'Continue', onPress: () => router.dismissAll() },
+          {
+            text: 'Continue',
+            onPress: () => {
+              markOnboarded();
+              // Clear the onboarding stack and land on the home tab.
+              router.dismissAll();
+              router.replace('/(tabs)');
+            },
+          },
         ]
       );
     } catch {
