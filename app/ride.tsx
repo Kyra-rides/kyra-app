@@ -11,6 +11,7 @@ import Animated, {
   Layout,
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
@@ -258,24 +259,6 @@ function StatusPill({ ride }: { ride: RideDoc }) {
 // --- Searching panel (status: requested | dispatching) --------------------
 
 function SearchingPanel({ ride }: { ride: RideDoc }) {
-  // Three staggered pulsing dots — hooks must be at top level, can't .map them.
-  const d1 = useSharedValue(0.3);
-  const d2 = useSharedValue(0.3);
-  const d3 = useSharedValue(0.3);
-  const dots = [d1, d2, d3];
-  useEffect(() => {
-    const repeat = (v: typeof d1) => {
-      v.value = withRepeat(
-        withTiming(1, { duration: 700, easing: Easing.inOut(Easing.ease) }),
-        -1,
-        true,
-      );
-    };
-    repeat(d1);
-    repeat(d2);
-    repeat(d3);
-  }, [d1, d2, d3]);
-
   const message =
     ride.status === 'requested'
       ? 'Reading your request — finding the closest driver near you.'
@@ -288,11 +271,7 @@ function SearchingPanel({ ride }: { ride: RideDoc }) {
   return (
     <Animated.View entering={FadeIn.duration(280)} layout={Layout.duration(180)}>
       <View style={styles.searchHeader}>
-        <View style={styles.dotsRow}>
-          {dots.map((v, i) => (
-            <AnimatedDot key={i} progress={v} delay={i * 200} />
-          ))}
-        </View>
+        <RadarPulse />
         <ThemedText type="title" style={styles.searchTitle}>
           Looking for your ride…
         </ThemedText>
@@ -327,12 +306,37 @@ function SearchingPanel({ ride }: { ride: RideDoc }) {
   );
 }
 
-function AnimatedDot({ progress, delay }: { progress: ReturnType<typeof useSharedValue<number>>; delay: number }) {
+// Radar pulse — three concentric gold rings expand outward from a steady
+// center dot, staggered 0/800/1600ms. Replaces the older 3-dot loader for a
+// more "scanning the city" feel during the agent's dispatch theatre.
+function RadarPulse() {
+  return (
+    <View style={styles.radarContainer}>
+      <View style={styles.radarCenter} />
+      <RadarRing delay={0} />
+      <RadarRing delay={800} />
+      <RadarRing delay={1600} />
+    </View>
+  );
+}
+
+function RadarRing({ delay }: { delay: number }) {
+  const sv = useSharedValue(0);
+  useEffect(() => {
+    sv.value = withDelay(
+      delay,
+      withRepeat(
+        withTiming(1, { duration: 2400, easing: Easing.out(Easing.ease) }),
+        -1,
+        false,
+      ),
+    );
+  }, [delay, sv]);
   const style = useAnimatedStyle(() => ({
-    opacity: progress.value,
-    transform: [{ scale: 0.6 + progress.value * 0.4 }],
+    transform: [{ scale: 0.25 + sv.value * 1.55 }],
+    opacity: Math.max(0, 0.85 - sv.value),
   }));
-  return <Animated.View style={[styles.bigDot, style]} />;
+  return <Animated.View style={[styles.radarRing, style]} />;
 }
 
 // --- Accepted panel (status: accepted) -------------------------------------
@@ -526,12 +530,31 @@ const styles = StyleSheet.create({
 
   // Searching panel
   searchHeader: { alignItems: 'center', gap: 8, paddingTop: 6 },
-  dotsRow: { flexDirection: 'row', gap: 8, height: 14, alignItems: 'center' },
-  bigDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+  radarContainer: {
+    width: 140,
+    height: 140,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  radarCenter: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
     backgroundColor: Brand.gold,
+    zIndex: 2,
+    shadowColor: Brand.gold,
+    shadowOpacity: 0.8,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  radarRing: {
+    position: 'absolute',
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 2,
+    borderColor: Brand.gold,
   },
   searchTitle: { fontSize: 22, color: Brand.beige },
   searchSub: { color: Brand.beigeMuted, fontSize: 13, textAlign: 'center', maxWidth: 340 },
