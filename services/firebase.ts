@@ -44,7 +44,6 @@ if (useEmulator) {
   if (!g[flag]) {
     const hostUri =
       (Constants.expoConfig?.hostUri as string | undefined) ??
-      // @ts-expect-error: expoGoConfig is the right one in Expo Go runtime
       (Constants.expoGoConfig?.hostUri as string | undefined) ??
       '';
     const host = hostUri.split(':')[0] || 'localhost';
