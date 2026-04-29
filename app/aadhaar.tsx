@@ -1,9 +1,11 @@
-import { Alert, Button, StyleSheet, TextInput } from 'react-native';
+import { Alert, StyleSheet, TextInput } from 'react-native';
 import { useState } from 'react';
 import { router } from 'expo-router';
 
+import { BrandButton } from '@/components/brand-button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { Brand } from '@/constants/theme';
 
 export default function AadhaarScreen() {
   // Local memory for the 12-digit Aadhaar number the user types.
@@ -38,6 +40,7 @@ export default function AadhaarScreen() {
       <TextInput
         style={styles.input}
         placeholder="1234 5678 9012"
+        placeholderTextColor={Brand.beigeMuted}
         keyboardType="number-pad"
         maxLength={12}
         value={aadhaar}
@@ -48,7 +51,7 @@ export default function AadhaarScreen() {
         Your Aadhaar is checked against UIDAI and never stored on Kyra&apos;s servers.
       </ThemedText>
 
-      <Button title="Continue" onPress={handleContinue} />
+      <BrandButton title="Continue" onPress={handleContinue} />
     </ThemedView>
   );
 }
@@ -60,12 +63,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 24,
     gap: 14,
+    backgroundColor: Brand.burgundy,
   },
   title: {
     textAlign: 'center',
   },
   subtitle: {
     textAlign: 'center',
+    color: Brand.beigeMuted,
     paddingHorizontal: 8,
     marginBottom: 4,
   },
@@ -73,19 +78,19 @@ const styles = StyleSheet.create({
     width: '85%',
     maxWidth: 320,
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
+    borderColor: Brand.border,
+    borderRadius: Brand.radius,
     padding: 14,
     fontSize: 20,
     letterSpacing: 4,
     textAlign: 'center',
-    backgroundColor: '#fff',
-    color: '#000',
+    backgroundColor: Brand.burgundyLight,
+    color: Brand.beige,
   },
   disclaimer: {
     textAlign: 'center',
     fontSize: 12,
-    color: '#6b7280',
+    color: Brand.beigeMuted,
     paddingHorizontal: 16,
     marginBottom: 4,
   },

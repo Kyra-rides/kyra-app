@@ -1,9 +1,11 @@
-import { Alert, Button, StyleSheet, TextInput } from 'react-native';
+import { Alert, StyleSheet, TextInput } from 'react-native';
 import { useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 
+import { BrandButton } from '@/components/brand-button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { Brand } from '@/constants/theme';
 
 export default function OtpScreen() {
   // Read the phone number that was passed in from the sign-up screen.
@@ -39,13 +41,14 @@ export default function OtpScreen() {
       <TextInput
         style={styles.input}
         placeholder="123456"
+        placeholderTextColor={Brand.beigeMuted}
         keyboardType="number-pad"
         maxLength={6}
         value={code}
         onChangeText={setCode}
       />
 
-      <Button title="Verify" onPress={handleVerify} />
+      <BrandButton title="Verify" onPress={handleVerify} />
     </ThemedView>
   );
 }
@@ -57,25 +60,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 24,
     gap: 16,
+    backgroundColor: Brand.burgundy,
   },
   title: {
     textAlign: 'center',
   },
   subtitle: {
     textAlign: 'center',
+    color: Brand.beigeMuted,
     marginBottom: 8,
   },
   input: {
     width: '60%',
     maxWidth: 240,
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
+    borderColor: Brand.border,
+    borderRadius: Brand.radius,
     padding: 14,
     fontSize: 24,
     letterSpacing: 8,
     textAlign: 'center',
-    backgroundColor: '#fff',
-    color: '#000',
+    backgroundColor: Brand.burgundyLight,
+    color: Brand.beige,
   },
 });

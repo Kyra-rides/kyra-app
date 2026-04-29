@@ -1,10 +1,12 @@
-import { Alert, Button, StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import { useRef, useState } from 'react';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { router } from 'expo-router';
 
+import { BrandButton } from '@/components/brand-button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { Brand } from '@/constants/theme';
 
 export default function SelfieScreen() {
   // Permission state. `null` = still loading; otherwise granted / denied.
@@ -37,7 +39,7 @@ export default function SelfieScreen() {
           We need your camera for a one-time verification selfie. Used only to
           confirm it&apos;s really you, never shared.
         </ThemedText>
-        <Button title="Grant access" onPress={requestPermission} />
+        <BrandButton title="Grant access" onPress={requestPermission} />
       </ThemedView>
     );
   }
@@ -81,7 +83,7 @@ export default function SelfieScreen() {
         <CameraView ref={cameraRef} facing="front" style={styles.camera} />
       </View>
 
-      <Button
+      <BrandButton
         title={capturing ? 'Capturing…' : 'Capture'}
         onPress={handleCapture}
         disabled={capturing}
@@ -97,12 +99,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 24,
     gap: 14,
+    backgroundColor: Brand.burgundy,
   },
   title: {
     textAlign: 'center',
   },
   subtitle: {
     textAlign: 'center',
+    color: Brand.beigeMuted,
     paddingHorizontal: 8,
     marginBottom: 8,
   },
@@ -111,7 +115,9 @@ const styles = StyleSheet.create({
     height: 240,
     borderRadius: 120, // circular frame (like Aadhaar / passport selfie UIs)
     overflow: 'hidden',
-    backgroundColor: '#000',
+    backgroundColor: Brand.burgundyDark,
+    borderWidth: 2,
+    borderColor: Brand.gold,
     marginBottom: 8,
   },
   camera: {
