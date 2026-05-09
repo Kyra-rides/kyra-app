@@ -1,56 +1,38 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { ScrollView, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { ScreenHeader } from '@/components/screen-header';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Brand } from '@/constants/theme';
 
+type NoticeId = 'n1' | 'n2' | 'n3';
 type Notice = {
-  id: string;
+  id: NoticeId;
   icon: React.ComponentProps<typeof MaterialIcons>['name'];
-  title: string;
-  body: string;
-  when: string;
 };
 
 const notices: Notice[] = [
-  {
-    id: 'n1',
-    icon: 'check-circle',
-    title: 'Ride completed',
-    body: 'Indiranagar Metro → Cubbon Park · ₹142',
-    when: 'Today, 3:25 PM',
-  },
-  {
-    id: 'n2',
-    icon: 'verified-user',
-    title: 'Identity verified',
-    body: 'Welcome to Kyra. You can now book rides.',
-    when: 'Yesterday',
-  },
-  {
-    id: 'n3',
-    icon: 'security',
-    title: 'New trusted contact suggestion',
-    body: 'Add a contact so we can share live trips on every ride.',
-    when: '2 days ago',
-  },
+  { id: 'n1', icon: 'check-circle' },
+  { id: 'n2', icon: 'verified-user' },
+  { id: 'n3', icon: 'security' },
 ];
 
 export default function NotificationsScreen() {
+  const { t } = useTranslation();
   return (
     <ThemedView style={styles.container}>
-      <ScreenHeader title="Notifications" />
+      <ScreenHeader title={t('notifications_screen.title')} />
 
       <ScrollView contentContainerStyle={styles.content}>
         {notices.map((n) => (
           <View key={n.id} style={styles.card}>
             <MaterialIcons name={n.icon} size={22} color={Brand.gold} style={styles.icon} />
             <View style={styles.text}>
-              <ThemedText type="defaultSemiBold">{n.title}</ThemedText>
-              <ThemedText style={styles.body}>{n.body}</ThemedText>
-              <ThemedText style={styles.when}>{n.when}</ThemedText>
+              <ThemedText type="defaultSemiBold">{t(`notifications_screen.${n.id}_title`)}</ThemedText>
+              <ThemedText style={styles.body}>{t(`notifications_screen.${n.id}_body`)}</ThemedText>
+              <ThemedText style={styles.when}>{t(`notifications_screen.${n.id}_when`)}</ThemedText>
             </View>
           </View>
         ))}

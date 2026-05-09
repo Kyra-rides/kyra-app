@@ -1,25 +1,54 @@
 {
   "expo": {
-    "name": "kyra-app",
-    "slug": "kyra-app",
+    "name": "Kyra",
+    "slug": "kyra-rider",
     "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "kyraapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "app.kyra.rider",
+      "buildNumber": "1",
+      "config": {
+        "googleMapsApiKey": "AIzaSyC9edB8_0YFshQ5-yXFZMra34CYylor5Ck"
+      },
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSLocationWhenInUseUsageDescription": "Kyra uses your location to set your pickup point and show your driver approaching.",
+        "NSCameraUsageDescription": "Kyra captures a one-time selfie to verify your account during sign-up.",
+        "NSPhotoLibraryUsageDescription": "Kyra lets you upload a profile photo from your library."
+      }
     },
     "android": {
+      "package": "app.kyra.rider",
+      "versionCode": 12,
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyC9edB8_0YFshQ5-yXFZMra34CYylor5Ck"
+        }
+      },
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#370b09",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "READ_MEDIA_IMAGES",
+        "POST_NOTIFICATIONS",
+        "VIBRATE"
+      ]
     },
     "web": {
       "output": "static",
@@ -27,28 +56,51 @@
     },
     "plugins": [
       "expo-router",
+      "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "color": "#CEB37E",
+          "androidMode": "default",
+          "androidCollapsedTitle": "Kyra"
+        }
+      ],
       [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#370b09",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": "#370b09"
           }
         }
       ],
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Kyra uses your location to set the pickup point for your ride."
+          "locationWhenInUsePermission": "Kyra uses your location to set your pickup point and show your driver approaching."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Kyra captures a one-time selfie to verify your account during sign-up."
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": false
+    },
+    "owner": "divyashripatil",
+    "extra": {
+      "googleMapsKey": "AIzaSyC9edB8_0YFshQ5-yXFZMra34CYylor5Ck",
+      "router": {},
+      "eas": {
+        "projectId": "b4a69728-2007-4a96-9f88-c139d815e9dc"
+      }
     }
   }
 }

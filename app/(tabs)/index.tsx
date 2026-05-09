@@ -1,7 +1,19 @@
+/**
+ * Rider home tab — map-first booking entry + active-ride router.
+ *
+ * If the rider has an in-flight ride (status not in {completed, cancelled_*}),
+ * we redirect to /ride. Otherwise we show the map UI: current-location pin,
+ * recenter button, search ("Where are you going?") that pushes to /destination,
+ * Home/Work/Saved shortcuts, recents list, and the verified-women banner.
+ *
+ * Real ride creation happens at the end of the destination → vehicles flow,
+ * not here.
+ */
+
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import * as Haptics from 'expo-haptics';
-import { router } from 'expo-router';
-import { useEffect, useRef } from 'react';
+import { router, Redirect } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE, type Region } from 'react-native-maps';
 import Animated, { FadeIn, FadeInDown, Layout } from 'react-native-reanimated';
@@ -21,11 +33,16 @@ import {
   useSaved,
   type SavedSlot,
 } from '@/services/places';
-import { isOnboarded } from '@/services/demo-state';
 import { setDrop, setPickup, setRoute } from '@/services/trip';
+import { signOut } from '@/services/auth';
+import { supabase } from '@/services/supabase';
+import { fetchLatestRide, type Ride } from '@/services/rides';
 
-// Bengaluru centroid — used as a final fallback view while GPS is loading
-// or denied. We never use this as a "real" pickup; rider must set one.
+const ACTIVE_STATUSES: Ride['status'][] = [
+  'requested', 'matched', 'driver_arriving', 'pickup_verified', 'in_trip',
+];
+
+// Bengaluru centroid — final fallback only while GPS is loading or denied.
 const BLR_FALLBACK = { latitude: 12.9716, longitude: 77.5946 };
 const DEFAULT_DELTA = 0.04;
 
@@ -36,22 +53,48 @@ export default function RideHomeScreen() {
   const saved = useSaved();
   const location = useCurrentLocation();
   const mapRef = useRef<MapView | null>(null);
-  const followedRef = useRef(false); // first-time auto-pan guard
+  const followedRef = useRef(false);
 
-  // Demo: every fresh app launch lands on /sign-up. The flag is in-memory, so
-  // a reload (or Expo Go restart) resets it. Once onboarding completes the
-  // rider returns here normally.
-  useEffect(() => {
-    if (!isOnboarded()) {
-      router.replace('/sign-up');
-    }
-  }, []);
+  const [hasSession, setHasSession] = useState<boolean | null>(null);
+  const [activeRide, setActiveRide] = useState<Ride | null>(null);
 
   useEffect(() => {
     void hydratePlaces();
   }, []);
 
-  // When GPS resolves for the first time, animate the camera to it.
+  // Auth gate.
+  useEffect(() => {
+    let mounted = true;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (mounted) setHasSession(!!data.session);
+    });
+    const sub = supabase.auth.onAuthStateChange((_e, session) => {
+      if (mounted) setHasSession(!!session);
+    });
+    return () => { mounted = false; sub.data.subscription.unsubscribe(); };
+  }, []);
+
+  // Active-ride watcher: bounce to /ride if any ride is in-flight.
+  const refreshActiveRide = useCallback(async () => {
+    try {
+      const r = await fetchLatestRide();
+      setActiveRide(r && ACTIVE_STATUSES.includes(r.status) ? r : null);
+    } catch {
+      setActiveRide(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!hasSession) return;
+    void refreshActiveRide();
+    const channel = supabase
+      .channel('rider_active_ride_home')
+      .on('postgres_changes', { event: '*', schema: 'kyra', table: 'rides' }, () => void refreshActiveRide())
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [hasSession, refreshActiveRide]);
+
+  // First-time camera follow once GPS resolves.
   useEffect(() => {
     if (location.status === 'ready' && location.place && !followedRef.current) {
       followedRef.current = true;
@@ -67,13 +110,16 @@ export default function RideHomeScreen() {
     }
   }, [location.status, location.place]);
 
+  if (hasSession === false) return <Redirect href="/sign-up" />;
+  if (hasSession === null)  return <ThemedView style={{ flex: 1, backgroundColor: Brand.burgundy }} />;
+  if (activeRide)            return <Redirect href="/ride" />;
+
   const home = saved.find((s) => s.id === HOME_SLOT);
   const work = saved.find((s) => s.id === WORK_SLOT);
   const customSaved = saved.filter((s) => s.id !== HOME_SLOT && s.id !== WORK_SLOT);
 
   const goToVehiclesWith = (drop: Place) => {
     if (!location.place) {
-      // No GPS yet — push the rider into destination so she can set pickup.
       router.push({ pathname: '/destination', params: { presetDrop: drop.id } });
       return;
     }
@@ -149,6 +195,15 @@ export default function RideHomeScreen() {
             />
           ) : null}
         </MapView>
+
+        <Pressable
+          onPress={() => signOut()}
+          hitSlop={8}
+          style={({ pressed }) => [styles.signOutFab, pressed && styles.pressedDim]}
+          accessibilityLabel="Sign out"
+        >
+          <MaterialIcons name="logout" size={18} color={Brand.beige} />
+        </Pressable>
 
         {location.status === 'denied' || location.status === 'unavailable' ? (
           <Animated.View entering={FadeIn.duration(200)} style={styles.permBanner}>
@@ -329,17 +384,30 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.burgundy,
   },
   mapArea: {
-    height: 240,
+    height: 280,
     backgroundColor: Brand.burgundyDark,
     borderBottomWidth: 1,
     borderBottomColor: Brand.burgundyLight,
     overflow: 'hidden',
   },
+  signOutFab: {
+    position: 'absolute',
+    top: 56,
+    right: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Brand.burgundy,
+    borderWidth: 1,
+    borderColor: Brand.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   permBanner: {
     position: 'absolute',
-    top: 12,
+    top: 56,
     left: 12,
-    right: 12,
+    right: 56,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,

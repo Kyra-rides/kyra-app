@@ -1,11 +1,13 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Tabs } from 'expo-router';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { Brand } from '@/constants/theme';
 
 export default function TabLayout() {
+  const { t } = useTranslation();
   return (
     <Tabs
       screenOptions={{
@@ -21,21 +23,21 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Ride',
+          title: t('tabs.ride'),
           tabBarIcon: ({ color }) => <MaterialIcons size={26} name="near-me" color={color} />,
         }}
       />
       <Tabs.Screen
         name="services"
         options={{
-          title: 'Services',
+          title: t('tabs.services'),
           tabBarIcon: ({ color }) => <MaterialIcons size={26} name="grid-view" color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: t('tabs.profile'),
           tabBarIcon: ({ color }) => <MaterialIcons size={26} name="person-outline" color={color} />,
         }}
       />

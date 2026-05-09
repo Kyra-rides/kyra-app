@@ -258,11 +258,3 @@ function decodePolyline(encoded: string): Coord[] {
   return out;
 }
 
-// Mocked rider current location — MG Road area in Bengaluru.
-// Swap to expo-location once the GPS permission flow ships.
-export const MOCK_CURRENT: Place = {
-  id: 'current',
-  name: 'Current location',
-  address: 'MG Road, Bengaluru',
-  coord: { lat: 12.9756, lng: 77.6068 },
-};

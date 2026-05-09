@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown, Layout } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -32,6 +33,7 @@ import { setDrop, setPickup, setRoute, useTrip } from '@/services/trip';
 type Mode = 'pickup' | 'drop';
 
 export default function DestinationScreen() {
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ saveTo?: string; saveLabel?: string }>();
   const saveTo = typeof params.saveTo === 'string' ? params.saveTo : undefined;
   const saveLabel = typeof params.saveLabel === 'string' ? params.saveLabel : undefined;
@@ -87,7 +89,7 @@ export default function DestinationScreen() {
         const items = await suggest(activeQuery);
         if (myReq !== reqIdRef.current) return;
         setResults(items);
-        setError(items.length === 0 ? 'No places matched.' : null);
+        setError(items.length === 0 ? t('destination.no_matches') : null);
       } catch (e) {
         if (myReq !== reqIdRef.current) return;
         setError(`Search unavailable. ${(e as Error).message}`);
@@ -137,7 +139,7 @@ export default function DestinationScreen() {
         if (!pickup) {
           // No pickup yet — switch to pickup mode and prompt the rider.
           setMode('pickup');
-          setError('Set your pickup first.');
+          setError(t('destination.set_pickup_first'));
           // Keep the chosen drop in state so we can finish once pickup is set.
           setPendingDrop(place);
           setTimeout(() => pickupInputRef.current?.focus(), 50);
@@ -202,7 +204,7 @@ export default function DestinationScreen() {
     if (!pickup) {
       setPendingDrop(place);
       setMode('pickup');
-      setError('Set your pickup first.');
+      setError(t('destination.set_pickup_first'));
       setTimeout(() => pickupInputRef.current?.focus(), 50);
       return;
     }
@@ -243,7 +245,9 @@ export default function DestinationScreen() {
   const showResults = results.length > 0;
   const showRecents = !showResults && filteredRecents.length > 0;
 
-  const headerTitle = saveTo ? `Set ${saveLabel ?? 'address'}` : 'Where to?';
+  const headerTitle = saveTo
+    ? t('destination.header_set', { label: saveLabel ?? t('destination.default_address_label') })
+    : t('destination.header_where_to');
 
   // Render helpers ----------------------------------------------------------
 
@@ -253,7 +257,7 @@ export default function DestinationScreen() {
       <TextInput
         ref={pickupInputRef}
         style={styles.input}
-        placeholder={location.place ? location.place.name : 'Search for your pickup'}
+        placeholder={location.place ? location.place.name : t('destination.placeholder_pickup')}
         placeholderTextColor={Brand.beigeMuted}
         value={pickupQuery}
         onChangeText={setPickupQuery}
@@ -281,7 +285,7 @@ export default function DestinationScreen() {
         {pickupPlace ? (
           <>
             <ThemedText numberOfLines={1} style={styles.fieldValue}>
-              {pickupPlace.id === 'current-gps' ? 'Current location' : pickupPlace.name}
+              {pickupPlace.id === 'current-gps' ? t('destination.current_location') : pickupPlace.name}
             </ThemedText>
             {pickupPlace.address ? (
               <ThemedText numberOfLines={1} style={styles.fieldValueSub}>
@@ -290,9 +294,9 @@ export default function DestinationScreen() {
             ) : null}
           </>
         ) : location.status === 'loading' || location.status === 'idle' ? (
-          <ThemedText style={styles.fieldPlaceholder}>Locating you…</ThemedText>
+          <ThemedText style={styles.fieldPlaceholder}>{t('destination.locating_you')}</ThemedText>
         ) : (
-          <ThemedText style={styles.fieldPlaceholder}>Tap to set your pickup</ThemedText>
+          <ThemedText style={styles.fieldPlaceholder}>{t('destination.tap_to_set_pickup')}</ThemedText>
         )}
       </View>
       <MaterialIcons name="edit" size={16} color={Brand.beigeMuted} />
@@ -316,8 +320,8 @@ export default function DestinationScreen() {
         style={styles.input}
         placeholder={
           saveTo
-            ? `Search to set ${saveLabel ?? 'this place'}`
-            : 'Search a Bengaluru address'
+            ? t('destination.placeholder_search_save', { label: saveLabel ?? t('destination.default_save_placeholder') })
+            : t('destination.placeholder_drop')
         }
         placeholderTextColor={Brand.beigeMuted}
         value={dropQuery}
@@ -363,7 +367,7 @@ export default function DestinationScreen() {
         <Animated.View entering={FadeIn.duration(200)} style={styles.saveBanner}>
           <MaterialIcons name="bookmark-border" size={16} color={Brand.gold} />
           <ThemedText style={styles.saveBannerText}>
-            Pick a place — we’ll save it as “{saveLabel ?? 'Saved'}”.
+            {t('destination.save_banner', { label: saveLabel ?? t('destination.default_save_label') })}
           </ThemedText>
         </Animated.View>
       ) : null}
@@ -388,12 +392,12 @@ export default function DestinationScreen() {
             />
             <ThemedText style={styles.gpsBtnText}>
               {location.status === 'ready'
-                ? 'Use my current location'
+                ? t('destination.gps_use')
                 : location.status === 'denied'
-                  ? 'Allow location access'
+                  ? t('destination.gps_allow')
                   : location.status === 'unavailable'
-                    ? 'Retry location'
-                    : 'Locating…'}
+                    ? t('destination.gps_retry')
+                    : t('destination.gps_locating')}
             </ThemedText>
           </Pressable>
         </View>
@@ -412,7 +416,7 @@ export default function DestinationScreen() {
 
         {showResults ? (
           <ThemedText type="defaultSemiBold" style={styles.section}>
-            Results
+            {t('destination.section_results')}
           </ThemedText>
         ) : null}
 
@@ -456,7 +460,7 @@ export default function DestinationScreen() {
 
         {showRecents ? (
           <ThemedText type="defaultSemiBold" style={styles.section}>
-            Recent
+            {t('destination.section_recent')}
           </ThemedText>
         ) : null}
 
@@ -497,8 +501,8 @@ export default function DestinationScreen() {
           <Animated.View entering={FadeIn.duration(200)} style={styles.empty}>
             <ThemedText style={styles.emptyText}>
               {mode === 'pickup'
-                ? 'Type your pickup or use your current location.'
-                : 'Try “MG Road”, “Indiranagar”, “Cubbon Park”…'}
+                ? t('destination.empty_pickup')
+                : t('destination.empty_drop')}
             </ThemedText>
           </Animated.View>
         ) : null}

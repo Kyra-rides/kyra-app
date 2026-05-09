@@ -2,6 +2,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import Animated, { FadeIn, FadeInUp, Layout } from 'react-native-reanimated';
@@ -13,7 +14,7 @@ import { TRAFFIC_COLORS, useDarkMapReady } from '@/constants/map-style';
 import { Brand } from '@/constants/theme';
 import { calculateFare } from '@/services/fare';
 import { route as fetchRoute } from '@/services/maps';
-import { createRide } from '@/services/ride-firestore';
+import { createRide } from '@/services/rides';
 import { setRoute, useTrip } from '@/services/trip';
 
 type VehicleId = 'auto' | 'bike';
@@ -29,6 +30,7 @@ const vehicles: {
 ];
 
 export default function VehiclesScreen() {
+  const { t } = useTranslation();
   const { pickup, drop, route } = useTrip();
   const [selected, setSelected] = useState<VehicleId>('auto');
   const [loading, setLoading] = useState(false);
@@ -43,12 +45,19 @@ export default function VehiclesScreen() {
     setError(null);
     fetchRoute(pickup.coord, drop.coord)
       .then((r) => setRoute(r))
-      .catch(() => setError('Could not load route. Showing flat-rate fare.'))
+      .catch(() => setError(t('vehicles.fare_unavailable')))
       .finally(() => setLoading(false));
   }, [pickup, drop, route]);
 
   const distanceKm = route?.distanceKm ?? 0;
-  const fare = useMemo(() => calculateFare(distanceKm), [distanceKm]);
+  const fareByVehicle = useMemo(
+    () => ({
+      auto: calculateFare(distanceKm, 'auto'),
+      bike: calculateFare(distanceKm, 'bike'),
+    }),
+    [distanceKm],
+  );
+  const fare = fareByVehicle[selected];
   const selectedVehicle = vehicles.find((v) => v.id === selected) ?? vehicles[0];
 
   const initialRegion = useMemo(() => {
@@ -66,8 +75,8 @@ export default function VehiclesScreen() {
     return (
       <ThemedView style={styles.container}>
         <View style={styles.empty}>
-          <ThemedText style={styles.emptyText}>Pick a destination first.</ThemedText>
-          <BrandButton title="Choose destination" onPress={() => router.replace('/destination')} />
+          <ThemedText style={styles.emptyText}>{t('vehicles.title')}</ThemedText>
+          <BrandButton title={t('common.continue')} onPress={() => router.replace('/destination')} />
         </View>
       </ThemedView>
     );
@@ -138,7 +147,7 @@ export default function VehiclesScreen() {
           ) : loading ? (
             <View style={styles.routeLoading}>
               <ActivityIndicator size="small" color={Brand.beigeMuted} />
-              <ThemedText style={styles.routeMeta}>Calculating route…</ThemedText>
+              <ThemedText style={styles.routeMeta}>{t('vehicles.loading_route')}</ThemedText>
             </View>
           ) : error ? (
             <ThemedText style={styles.routeMetaWarn}>{error}</ThemedText>
@@ -182,7 +191,7 @@ export default function VehiclesScreen() {
                   <View style={styles.farePlaceholder} />
                 ) : (
                   <ThemedText type="defaultSemiBold" style={styles.fare}>
-                    ₹{fare}
+                    ₹{fareByVehicle[v.id]}
                   </ThemedText>
                 )}
               </Pressable>
@@ -191,7 +200,7 @@ export default function VehiclesScreen() {
         })}
 
         <ThemedText style={styles.fareNote}>
-          ₹50 base (first 2 km) + ₹20 per additional km
+          Auto: ₹50 base + ₹20/km   ·   Bike: ₹40 base + ₹15/km
         </ThemedText>
 
         <View style={styles.payRow}>
@@ -209,7 +218,7 @@ export default function VehiclesScreen() {
 
       <View style={styles.bookBar}>
         <BrandButton
-          title={booking ? 'Booking…' : `Book ${selectedVehicle.label} · ₹${fare}`}
+          title={booking ? t('vehicles.booking') : `${t('vehicles.book')} · ${selectedVehicle.label} · ₹${fare}`}
           disabled={booking}
           onPress={async () => {
             if (booking) return;
@@ -217,16 +226,13 @@ export default function VehiclesScreen() {
             void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             try {
               await createRide({
-                pickup: { name: pickup.name, address: pickup.address, coord: pickup.coord },
-                drop: { name: drop.name, address: drop.address, coord: drop.coord },
-                vehicleType: selected,
+                pickup: { lat: pickup.coord.lat, lng: pickup.coord.lng, address: pickup.address },
+                drop:   { lat: drop.coord.lat,   lng: drop.coord.lng,   address: drop.address },
                 fareInr: fare,
-                distanceKm: route?.distanceKm ?? 0,
-                durationMin: route?.durationMin ?? 0,
               });
               router.push('/ride');
             } catch (e) {
-              setError(`Could not book ride. ${(e as Error).message}`);
+              setError(`${t('vehicles.could_not_book')} ${(e as Error).message}`);
               setBooking(false);
             }
           }}

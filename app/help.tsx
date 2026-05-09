@@ -1,37 +1,39 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { ScreenHeader } from '@/components/screen-header';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Brand } from '@/constants/theme';
 
+type TopicId = 'fare' | 'driver' | 'payment' | 'safety' | 'verification' | 'other';
 type Topic = {
-  id: string;
-  label: string;
+  id: TopicId;
   icon: React.ComponentProps<typeof MaterialIcons>['name'];
 };
 
 const topics: Topic[] = [
-  { id: 'fare', label: 'Ride fare', icon: 'attach-money' },
-  { id: 'driver', label: 'Driver & vehicle', icon: 'directions-car' },
-  { id: 'payment', label: 'Payment', icon: 'payments' },
-  { id: 'safety', label: 'Safety', icon: 'security' },
-  { id: 'verification', label: 'Verification', icon: 'verified-user' },
-  { id: 'other', label: 'Other', icon: 'more-horiz' },
+  { id: 'fare', icon: 'attach-money' },
+  { id: 'driver', icon: 'directions-car' },
+  { id: 'payment', icon: 'payments' },
+  { id: 'safety', icon: 'security' },
+  { id: 'verification', icon: 'verified-user' },
+  { id: 'other', icon: 'more-horiz' },
 ];
 
 export default function HelpScreen() {
+  const { t } = useTranslation();
   return (
     <ThemedView style={styles.container}>
-      <ScreenHeader title="Help" />
+      <ScreenHeader title={t('help.title')} />
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.search}>
           <MaterialIcons name="search" size={20} color={Brand.beigeMuted} />
           <TextInput
-            placeholder="Search issues"
+            placeholder={t('help.search_placeholder')}
             placeholderTextColor={Brand.beigeMuted}
             style={styles.searchInput}
           />
@@ -39,9 +41,9 @@ export default function HelpScreen() {
 
         <View style={styles.lastRideCard}>
           <View style={styles.lastRideTop}>
-            <ThemedText type="defaultSemiBold">Your last ride</ThemedText>
+            <ThemedText type="defaultSemiBold">{t('help.last_ride')}</ThemedText>
             <Pressable onPress={() => router.push('/rides')}>
-              <ThemedText style={styles.link}>View all rides</ThemedText>
+              <ThemedText style={styles.link}>{t('help.view_all')}</ThemedText>
             </Pressable>
           </View>
           <ThemedText style={styles.lastRideMeta}>
@@ -58,20 +60,20 @@ export default function HelpScreen() {
         </View>
 
         <View style={styles.issueCard}>
-          <ThemedText style={styles.issueText}>Having an issue?</ThemedText>
+          <ThemedText style={styles.issueText}>{t('help.issue_q')}</ThemedText>
           <Pressable style={styles.helpBtn}>
-            <ThemedText style={styles.helpBtnText}>Get help</ThemedText>
+            <ThemedText style={styles.helpBtnText}>{t('help.get_help')}</ThemedText>
           </Pressable>
         </View>
 
         <ThemedText type="defaultSemiBold" style={styles.section}>
-          FAQs
+          {t('help.faqs')}
         </ThemedText>
         <View style={styles.grid}>
-          {topics.map((t) => (
-            <Pressable key={t.id} style={styles.tile}>
-              <MaterialIcons name={t.icon} size={28} color={Brand.gold} />
-              <ThemedText style={styles.tileLabel}>{t.label}</ThemedText>
+          {topics.map((topic) => (
+            <Pressable key={topic.id} style={styles.tile}>
+              <MaterialIcons name={topic.icon} size={28} color={Brand.gold} />
+              <ThemedText style={styles.tileLabel}>{t(`help.topic_${topic.id}`)}</ThemedText>
             </Pressable>
           ))}
         </View>

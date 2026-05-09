@@ -1,75 +1,124 @@
-import { Alert, StyleSheet, TextInput } from 'react-native';
+/**
+ * OTP entry. Calls the Supabase otp-verify Edge Function which returns a
+ * session; we set it on the client and route to /selfie for the woman-
+ * verification photo. Aadhaar entry was removed — riders no longer submit
+ * an Aadhaar number, only a selfie that admins approve manually.
+ */
+
+import {
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableWithoutFeedback,
+} from 'react-native';
 import { useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { BrandButton } from '@/components/brand-button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Brand } from '@/constants/theme';
+import { verifyOtp } from '@/services/auth';
 
 export default function OtpScreen() {
-  // Read the phone number that was passed in from the sign-up screen.
-  // `useLocalSearchParams` reads URL query params, e.g. /otp?phone=9876543210
-  const { phone } = useLocalSearchParams<{ phone: string }>();
+  const { t } = useTranslation();
+  const params = useLocalSearchParams<{
+    phone?: string;
+    first_name?: string;
+    last_name?: string;
+    dev_otp?: string;
+  }>();
 
-  // Local memory for the 6-digit code the user types.
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState(params.dev_otp ?? '');
+  const [busy, setBusy] = useState(false);
 
-  const handleVerify = () => {
-    // Mock verification: any 6-digit code is "correct" for now.
-    // Real verification will check against the OTP sent by an SMS provider
-    // (MSG91 / Twilio) once the backend is in place.
+  const handleVerify = async () => {
     if (code.length !== 6) {
-      Alert.alert('Enter a 6-digit code', 'The code should be 6 digits long.');
+      Alert.alert(t('otp.title'), t('otp.instruction', { phone: params.phone ?? '' }));
       return;
     }
-    // Phone is verified — move on to identity (Aadhaar) verification.
-    // No alert here; the screen change itself confirms success.
-    router.push('/aadhaar');
+    if (!params.phone || !params.first_name || !params.last_name) {
+      Alert.alert(t('otp.missing'), t('otp.go_back'));
+      return;
+    }
+    setBusy(true);
+    try {
+      await verifyOtp({
+        phone:     `+91${params.phone}`,
+        otp:       code,
+        role:      'rider',
+        firstName: params.first_name,
+        lastName:  params.last_name,
+      });
+      Keyboard.dismiss();
+      router.replace('/selfie');
+    } catch (err) {
+      Alert.alert(t('otp.fail'), err instanceof Error ? err.message : t('signup.try_again'));
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
-    <ThemedView style={styles.container}>
-      <ThemedText type="title" style={styles.title}>
-        Verify your number
-      </ThemedText>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <ThemedView style={styles.container}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.flex}
+        >
+          <ScrollView contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled">
+            <ThemedText type="title" style={styles.title}>{t('otp.title')}</ThemedText>
+            <ThemedText style={styles.subtitle}>
+              {t('otp.instruction', { phone: params.phone ? `+91 ${params.phone}` : '' })}
+            </ThemedText>
+            {params.dev_otp ? (
+              <ThemedView style={styles.devBanner}>
+                <ThemedText style={styles.devBannerText}>
+                  {t('otp.dev_hint', { otp: params.dev_otp })}
+                </ThemedText>
+              </ThemedView>
+            ) : null}
 
-      <ThemedText style={styles.subtitle}>
-        We sent a 6-digit code to {phone ? `+91 ${phone}` : 'your phone'}.
-      </ThemedText>
+            <TextInput
+              style={styles.input}
+              placeholder="123456"
+              placeholderTextColor={Brand.beigeMuted}
+              keyboardType="number-pad"
+              maxLength={6}
+              value={code}
+              onChangeText={(v) => setCode(v.replace(/[^0-9]/g, ''))}
+              autoFocus
+            />
 
-      <TextInput
-        style={styles.input}
-        placeholder="123456"
-        placeholderTextColor={Brand.beigeMuted}
-        keyboardType="number-pad"
-        maxLength={6}
-        value={code}
-        onChangeText={setCode}
-      />
-
-      <BrandButton title="Verify" onPress={handleVerify} />
-    </ThemedView>
+            <BrandButton
+              title={busy ? t('otp.verifying') : t('otp.verify')}
+              onPress={handleVerify}
+              disabled={busy}
+            />
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </ThemedView>
+    </TouchableWithoutFeedback>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  container: { flex: 1, backgroundColor: Brand.burgundy },
+  flex:      { flex: 1 },
+  inner: {
+    flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
     gap: 16,
-    backgroundColor: Brand.burgundy,
   },
-  title: {
-    textAlign: 'center',
-  },
-  subtitle: {
-    textAlign: 'center',
-    color: Brand.beigeMuted,
-    marginBottom: 8,
-  },
+  title:    { textAlign: 'center' },
+  subtitle: { textAlign: 'center', color: Brand.beigeMuted, marginBottom: 8, paddingHorizontal: 16 },
   input: {
     width: '60%',
     maxWidth: 240,
@@ -82,5 +131,18 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     backgroundColor: Brand.burgundyLight,
     color: Brand.beige,
+  },
+  devBanner: {
+    backgroundColor: Brand.beige,
+    borderRadius: Brand.radius,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginVertical: 8,
+  },
+  devBannerText: {
+    color: Brand.burgundy,
+    fontSize: 18,
+    fontWeight: '700',
+    textAlign: 'center',
   },
 });

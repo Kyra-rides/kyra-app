@@ -1,6 +1,7 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { BrandButton } from '@/components/brand-button';
 import { ThemedText } from '@/components/themed-text';
@@ -8,6 +9,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Brand } from '@/constants/theme';
 
 export default function PickupScreen() {
+  const { t } = useTranslation();
   return (
     <ThemedView style={styles.container}>
       <View style={styles.mapArea}>
@@ -16,13 +18,13 @@ export default function PickupScreen() {
         </Pressable>
         <View style={styles.pin}>
           <MaterialIcons name="place" size={36} color={Brand.gold} />
-          <ThemedText style={styles.pinLabel}>Pickup</ThemedText>
+          <ThemedText style={styles.pinLabel}>{t('pickup.pin')}</ThemedText>
         </View>
-        <ThemedText style={styles.mapHint}>Drag the map to set your pickup point</ThemedText>
+        <ThemedText style={styles.mapHint}>{t('pickup.drag_hint')}</ThemedText>
       </View>
 
       <View style={styles.sheet}>
-        <ThemedText style={styles.sheetHint}>Pickup point</ThemedText>
+        <ThemedText style={styles.sheetHint}>{t('pickup.label')}</ThemedText>
         <ThemedText type="defaultSemiBold" style={styles.address}>
           12, 100 Ft Rd, Indiranagar
         </ThemedText>
@@ -30,23 +32,23 @@ export default function PickupScreen() {
           Bengaluru, Karnataka 560038
         </ThemedText>
 
-        <ThemedText style={styles.saveLabel}>Save this location as</ThemedText>
+        <ThemedText style={styles.saveLabel}>{t('pickup.save_as')}</ThemedText>
         <View style={styles.saveRow}>
           <Pressable style={styles.saveChip}>
             <MaterialIcons name="home" size={16} color={Brand.beige} />
-            <ThemedText style={styles.saveChipText}>Home</ThemedText>
+            <ThemedText style={styles.saveChipText}>{t('pickup.home')}</ThemedText>
           </Pressable>
           <Pressable style={styles.saveChip}>
             <MaterialIcons name="work-outline" size={16} color={Brand.beige} />
-            <ThemedText style={styles.saveChipText}>Work</ThemedText>
+            <ThemedText style={styles.saveChipText}>{t('pickup.work')}</ThemedText>
           </Pressable>
           <Pressable style={styles.saveChip}>
             <MaterialIcons name="add" size={16} color={Brand.beige} />
-            <ThemedText style={styles.saveChipText}>Add new</ThemedText>
+            <ThemedText style={styles.saveChipText}>{t('pickup.add_new')}</ThemedText>
           </Pressable>
         </View>
 
-        <BrandButton title="Confirm pickup" onPress={() => router.push('/vehicles')} />
+        <BrandButton title={t('pickup.confirm')} onPress={() => router.push('/vehicles')} />
       </View>
     </ThemedView>
   );

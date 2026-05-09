@@ -1,6 +1,7 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { ListRow } from '@/components/list-row';
 import { ScreenHeader } from '@/components/screen-header';
@@ -9,32 +10,33 @@ import { ThemedView } from '@/components/themed-view';
 import { Brand } from '@/constants/theme';
 
 export default function SafetyScreen() {
+  const { t } = useTranslation();
   const [autoShare, setAutoShare] = useState(true);
 
   return (
     <ThemedView style={styles.container}>
-      <ScreenHeader title="Safety" />
+      <ScreenHeader title={t('safety_screen.title')} />
 
       <ScrollView contentContainerStyle={styles.content}>
         <Pressable style={styles.sosCard}>
           <MaterialIcons name="emergency" size={28} color="#F4B7B7" />
           <View style={styles.sosText}>
             <ThemedText type="defaultSemiBold" style={styles.sosTitle}>
-              SOS
+              {t('safety_screen.sos_label')}
             </ThemedText>
             <ThemedText style={styles.sosSub}>
-              Hold to alert Kyra ops + your trusted contacts
+              {t('safety_screen.sos_sub')}
             </ThemedText>
           </View>
         </Pressable>
 
-        <ThemedText style={styles.section}>Trip sharing</ThemedText>
+        <ThemedText style={styles.section}>{t('safety_screen.trip_sharing')}</ThemedText>
         <View style={styles.group}>
           <View style={styles.toggleRow}>
             <View style={styles.toggleText}>
-              <ThemedText>Auto-share every ride</ThemedText>
+              <ThemedText>{t('safety_screen.auto_share')}</ThemedText>
               <ThemedText style={styles.toggleHint}>
-                Share live trip with trusted contacts on every booking
+                {t('safety_screen.auto_share_hint')}
               </ThemedText>
             </View>
             <Switch
@@ -46,15 +48,15 @@ export default function SafetyScreen() {
           </View>
         </View>
 
-        <ThemedText style={styles.section}>Trusted contacts</ThemedText>
+        <ThemedText style={styles.section}>{t('safety_screen.trusted_contacts')}</ThemedText>
         <View style={styles.group}>
-          <ListRow icon="person-add-alt" label="Add a contact" />
+          <ListRow icon="person-add-alt" label={t('safety_screen.add_contact')} />
         </View>
 
-        <ThemedText style={styles.section}>Other</ThemedText>
+        <ThemedText style={styles.section}>{t('safety_screen.other')}</ThemedText>
         <View style={styles.group}>
-          <ListRow icon="local-police" label="Bengaluru police helpline" hint="100" />
-          <ListRow icon="medical-services" label="Women helpline" hint="1091" />
+          <ListRow icon="local-police" label={t('safety_screen.police')} hint="100" />
+          <ListRow icon="medical-services" label={t('safety_screen.women_helpline')} hint="1091" />
         </View>
       </ScrollView>
     </ThemedView>

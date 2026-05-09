@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { useEffect } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, Layout } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 
 import { ScreenHeader } from '@/components/screen-header';
 import { ThemedText } from '@/components/themed-text';
@@ -19,6 +20,7 @@ import {
 } from '@/services/places';
 
 export default function FavoritesScreen() {
+  const { t } = useTranslation();
   const saved = useSaved();
 
   useEffect(() => {
@@ -29,18 +31,21 @@ export default function FavoritesScreen() {
   const work = saved.find((s) => s.id === WORK_SLOT);
   const custom = saved.filter((s) => s.id !== HOME_SLOT && s.id !== WORK_SLOT);
 
+  const homeLabel = t('favorites.label_home');
+  const workLabel = t('favorites.label_work');
+
   const editSlot = (slotId: string, label: string) => {
     router.push({ pathname: '/destination', params: { saveTo: slotId, saveLabel: label } });
   };
 
   const addCustom = () => {
     Alert.prompt(
-      'Save a place',
-      'What do you want to call it? (e.g. Mum’s, Gym)',
+      t('favorites.save_a_place_title'),
+      t('favorites.save_a_place_body'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('favorites.cancel'), style: 'cancel' },
         {
-          text: 'Next',
+          text: t('favorites.next'),
           onPress: (text?: string) => {
             const trimmed = (text ?? '').trim();
             if (!trimmed) return;
@@ -57,39 +62,39 @@ export default function FavoritesScreen() {
 
   const confirmRemove = (slot: SavedSlot) => {
     Alert.alert(
-      `Remove ${slot.label}?`,
-      `“${slot.place.name}” will no longer be a quick shortcut.`,
+      t('favorites.remove_q', { label: slot.label }),
+      t('favorites.remove_body', { name: slot.place.name }),
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Remove', style: 'destructive', onPress: () => removeSaved(slot.id) },
+        { text: t('favorites.cancel'), style: 'cancel' },
+        { text: t('favorites.remove'), style: 'destructive', onPress: () => removeSaved(slot.id) },
       ],
     );
   };
 
   return (
     <ThemedView style={styles.container}>
-      <ScreenHeader title="Saved places" />
+      <ScreenHeader title={t('favorites.title')} />
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.group}>
           <SavedRow
             icon="home"
-            label="Home"
+            label={homeLabel}
             slot={home}
-            onPress={() => editSlot(HOME_SLOT, 'Home')}
+            onPress={() => editSlot(HOME_SLOT, homeLabel)}
             onRemove={home ? () => confirmRemove(home) : undefined}
           />
           <SavedRow
             icon="work-outline"
-            label="Work"
+            label={workLabel}
             slot={work}
-            onPress={() => editSlot(WORK_SLOT, 'Work')}
+            onPress={() => editSlot(WORK_SLOT, workLabel)}
             onRemove={work ? () => confirmRemove(work) : undefined}
             isLast
           />
         </View>
 
-        <ThemedText style={styles.section}>Custom</ThemedText>
+        <ThemedText style={styles.section}>{t('favorites.section_custom')}</ThemedText>
         <View style={styles.group}>
           {custom.map((s, i) => (
             <Animated.View
@@ -114,7 +119,7 @@ export default function FavoritesScreen() {
           >
             <MaterialIcons name="add" size={22} color={Brand.gold} style={styles.rowIcon} />
             <ThemedText style={[styles.rowLabel, { color: Brand.gold }]}>
-              Add a saved place
+              {t('favorites.add_saved')}
             </ThemedText>
           </Pressable>
         </View>
@@ -122,7 +127,7 @@ export default function FavoritesScreen() {
         {saved.length === 0 ? (
           <Animated.View entering={FadeIn.duration(200)} style={styles.hint}>
             <ThemedText style={styles.hintText}>
-              Save Home, Work or any place you visit often — Kyra will offer it as a shortcut.
+              {t('favorites.empty_hint')}
             </ThemedText>
           </Animated.View>
         ) : null}
@@ -141,6 +146,7 @@ type SavedRowProps = {
 };
 
 function SavedRow({ icon, label, slot, onPress, onRemove, isLast }: SavedRowProps) {
+  const { t } = useTranslation();
   return (
     <Pressable
       accessibilityRole="button"
@@ -152,7 +158,7 @@ function SavedRow({ icon, label, slot, onPress, onRemove, isLast }: SavedRowProp
       <View style={styles.rowText}>
         <ThemedText style={styles.rowLabel}>{label}</ThemedText>
         <ThemedText style={styles.rowHint} numberOfLines={1}>
-          {slot ? slot.place.name : `Add your ${label.toLowerCase()} address`}
+          {slot ? slot.place.name : t('favorites.add_address_hint', { label: label.toLowerCase() })}
         </ThemedText>
       </View>
       {slot && onRemove ? (

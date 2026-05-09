@@ -1,32 +1,32 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Brand } from '@/constants/theme';
 
 type Service = {
-  id: string;
-  label: string;
-  sub: string;
+  id: 'auto' | 'bike';
   icon: React.ComponentProps<typeof MaterialIcons>['name'];
 };
 
 const services: Service[] = [
-  { id: 'auto', label: 'Auto', sub: 'Women-driven autos', icon: 'directions-car' },
-  { id: 'bike', label: 'Bike Taxi', sub: 'Pillion ride', icon: 'two-wheeler' },
+  { id: 'auto', icon: 'directions-car' },
+  { id: 'bike', icon: 'two-wheeler' },
 ];
 
 export default function ServicesScreen() {
+  const { t } = useTranslation();
   return (
     <ThemedView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
         <ThemedText type="title" style={styles.title}>
-          All services
+          {t('services_screen.title')}
         </ThemedText>
         <ThemedText style={styles.subtitle}>
-          Every ride is driven by a verified woman.
+          {t('services_screen.subtitle')}
         </ThemedText>
 
         <View style={styles.grid}>
@@ -39,8 +39,8 @@ export default function ServicesScreen() {
               <View style={styles.iconBubble}>
                 <MaterialIcons name={s.icon} size={32} color={Brand.burgundyDark} />
               </View>
-              <ThemedText type="defaultSemiBold">{s.label}</ThemedText>
-              <ThemedText style={styles.tileSub}>{s.sub}</ThemedText>
+              <ThemedText type="defaultSemiBold">{t(`services_screen.${s.id}`)}</ThemedText>
+              <ThemedText style={styles.tileSub}>{t(`services_screen.${s.id}_sub`)}</ThemedText>
             </Pressable>
           ))}
         </View>

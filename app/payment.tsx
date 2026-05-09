@@ -1,4 +1,5 @@
 import { ScrollView, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { ListRow } from '@/components/list-row';
 import { ScreenHeader } from '@/components/screen-header';
@@ -7,24 +8,25 @@ import { ThemedView } from '@/components/themed-view';
 import { Brand } from '@/constants/theme';
 
 export default function PaymentScreen() {
+  const { t } = useTranslation();
   return (
     <ThemedView style={styles.container}>
-      <ScreenHeader title="Payment" />
+      <ScreenHeader title={t('payment_screen.title')} />
 
       <ScrollView contentContainerStyle={styles.content}>
-        <ThemedText style={styles.section}>Default for rides</ThemedText>
+        <ThemedText style={styles.section}>{t('payment_screen.default_for_rides')}</ThemedText>
         <View style={styles.group}>
-          <ListRow icon="payments" label="Cash" hint="Pay the driver directly" />
+          <ListRow icon="payments" label={t('payment_screen.cash')} hint={t('payment_screen.cash_hint')} />
         </View>
 
-        <ThemedText style={styles.section}>UPI</ThemedText>
+        <ThemedText style={styles.section}>{t('payment_screen.upi')}</ThemedText>
         <View style={styles.group}>
-          <ListRow icon="account-balance-wallet" label="Add UPI" hint="GPay, PhonePe, Paytm" />
+          <ListRow icon="account-balance-wallet" label={t('payment_screen.add_upi')} hint={t('payment_screen.upi_hint')} />
         </View>
 
-        <ThemedText style={styles.section}>Cards</ThemedText>
+        <ThemedText style={styles.section}>{t('payment_screen.cards')}</ThemedText>
         <View style={styles.group}>
-          <ListRow icon="credit-card" label="Add a card" />
+          <ListRow icon="credit-card" label={t('payment_screen.add_card')} />
         </View>
       </ScrollView>
     </ThemedView>

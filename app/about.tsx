@@ -1,4 +1,5 @@
 import { Image, ScrollView, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { ListRow } from '@/components/list-row';
 import { ScreenHeader } from '@/components/screen-header';
@@ -7,9 +8,10 @@ import { ThemedView } from '@/components/themed-view';
 import { Brand } from '@/constants/theme';
 
 export default function AboutScreen() {
+  const { t } = useTranslation();
   return (
     <ThemedView style={styles.container}>
-      <ScreenHeader title="About" />
+      <ScreenHeader title={t('about.title')} />
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.brandCard}>
@@ -19,16 +21,16 @@ export default function AboutScreen() {
             resizeMode="contain"
           />
           <ThemedText style={styles.tagline}>
-            Bengaluru&apos;s women-only mobility platform.
+            {t('about.tagline')}
           </ThemedText>
-          <ThemedText style={styles.version}>Version 0.1.0 · made in India</ThemedText>
+          <ThemedText style={styles.version}>{t('about.version')}</ThemedText>
         </View>
 
         <View style={styles.group}>
-          <ListRow icon="description" label="Terms & Conditions" />
-          <ListRow icon="lock-outline" label="Privacy Policy" />
-          <ListRow icon="gavel" label="Licenses" />
-          <ListRow icon="public" label="kyrarides.in" />
+          <ListRow icon="description" label={t('about.terms')} />
+          <ListRow icon="lock-outline" label={t('about.privacy')} />
+          <ListRow icon="gavel" label={t('about.licenses')} />
+          <ListRow icon="public" label={t('about.website')} />
         </View>
       </ScrollView>
     </ThemedView>
